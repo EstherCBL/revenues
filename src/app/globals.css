@@ -1,26 +1,150 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fffaf4;
+  --surface: #ffffff;
+  --surface-hover: #fff3e6;
+  --foreground: #2a1b12;
+  --muted-foreground: #7a6656;
+  --border: #ecdbc8;
+  --border-strong: #ddc3a6;
+
+  --primary: #c2703a;
+  --primary-hover: #a85c2c;
+  --primary-foreground: #fffaf4;
+
+  --accent: #d9a441;
+  --accent-foreground: #2a1b12;
+
+  --success: #2f8f5b;
+  --success-bg: #e6f5ec;
+  --danger: #c0392b;
+  --danger-bg: #fbe9e7;
+  --info: #3b6ea5;
+  --info-bg: #e8f0f8;
+
+  --ring: #c2703a;
+}
+
+.dark {
+  --background: #16100a;
+  --surface: #211810;
+  --surface-hover: #2c2015;
+  --foreground: #f4e9dc;
+  --muted-foreground: #b9a48d;
+  --border: #3a2c1e;
+  --border-strong: #4c3a27;
+
+  --primary: #e08a4b;
+  --primary-hover: #ee9c5d;
+  --primary-foreground: #201207;
+
+  --accent: #e2b565;
+  --accent-foreground: #201207;
+
+  --success: #4cbf85;
+  --success-bg: #16302340;
+  --danger: #e0685a;
+  --danger-bg: #3a1a1640;
+  --info: #6fa3d8;
+  --info-bg: #142a3d40;
+
+  --ring: #e08a4b;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+/* Comfortable reading defaults */
+html {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* react-data-grid theming to match app palette (raised specificity to win over the library's own .rdg defaults regardless of CSS load order) */
+body .rdg {
+  --rdg-color: var(--foreground);
+  --rdg-border-color: var(--border);
+  --rdg-summary-border-color: var(--border-strong);
+  --rdg-background-color: var(--surface);
+  --rdg-header-background-color: var(--surface-hover);
+  --rdg-row-hover-background-color: var(--surface-hover);
+  --rdg-row-selected-background-color: var(--surface-hover);
+  --rdg-checkbox-color: var(--primary);
+  --rdg-selection-color: var(--primary);
+  --rdg-font-size: 0.9rem;
+  block-size: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+}
+
+body .rdg-cell {
+  border-inline-end: 1px solid var(--border) !important;
+  border-block-end: 1px solid var(--border) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
 }
