@@ -10,6 +10,18 @@ export type IngredienteComprado = {
   created_at: string;
 };
 
+export type PrecoPesquisado = {
+  id: string;
+  nome: string;
+  local_pesquisa: string | null;
+  quantidade: number;
+  unidade: string;
+  preco: number;
+  data_pesquisa: string; // YYYY-MM-DD
+  notas: string | null;
+  created_at: string;
+};
+
 export type Produto = {
   id: string;
   nome: string;

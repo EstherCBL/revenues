@@ -29,6 +29,11 @@ produtos e um dashboard com faturamento, lucro e divisão financeira.
    existente.
 5. Em **Project Settings > API**, copie a **Project URL** e a **anon public key**.
 
+> **Já tem o projeto rodando?** `schema.sql` usa `create table if not exists`,
+> então é seguro rodar o arquivo inteiro de novo no SQL Editor a qualquer
+> momento — ele só cria o que ainda não existe (por exemplo, a tabela
+> `precos_pesquisados` da aba "Pesquisa de preços").
+
 ## 2. Rodar localmente
 
 ```bash
@@ -58,6 +63,12 @@ para `/login`.
   dia.
 - **`/ingredientes`**: formulário de compra + histórico editável e
   exportável.
+- **`/pesquisa-precos`**: registre preços que você encontrou em diferentes
+  locais antes de comprar. O histórico é ordenado por ingrediente e preço,
+  destacando o menor preço encontrado quando há mais de uma cotação para o
+  mesmo item. O botão de pacote (📦) em cada linha abre um popup para lançar
+  aquele preço direto em "Ingredientes comprados", com data, quantidade e
+  valor pré-preenchidos (mas editáveis, caso tenham mudado na hora da compra).
 - **`/vendas`**: planilha editável (react-data-grid) com Data, Produto,
   Quantidade, Preço unitário, Valor total (calculado), Forma de pagamento e
   Notas. Botão "+ Nova venda" insere uma linha imediatamente; qualquer edição
