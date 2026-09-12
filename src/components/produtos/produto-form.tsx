@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { Produto } from "@/lib/types";
@@ -69,7 +70,7 @@ export function ProdutoForm({ onSubmit }: { onSubmit: (values: ProdutoInput) => 
 
       <div>
         <Button type="submit" disabled={saving}>
-          {saving ? "Salvando..." : "+ Cadastrar produto"}
+          {saving ? "Salvando..." : (<><Plus className="size-4" /> Cadastrar produto</>)}
         </Button>
       </div>
     </form>

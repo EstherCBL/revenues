@@ -4,15 +4,17 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
+import { AnimatePresence, motion } from "motion/react";
+import { LayoutDashboard, ShoppingBasket, Receipt, Cookie, Menu, X, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: "📊" },
-  { href: "/ingredientes", label: "Ingredientes", icon: "🧺" },
-  { href: "/vendas", label: "Vendidos", icon: "🧾" },
-  { href: "/produtos", label: "Produtos", icon: "🍪" },
+  { href: "/", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/ingredientes", label: "Ingredientes", Icon: ShoppingBasket },
+  { href: "/vendas", label: "Vendidos", Icon: Receipt },
+  { href: "/produtos", label: "Produtos", Icon: Cookie },
 ];
 
 export function AppShell({ userEmail, children }: { userEmail: string; children: ReactNode }) {
@@ -37,29 +39,47 @@ export function AppShell({ userEmail, children }: { userEmail: string; children:
               onClick={() => setMenuOpen((v) => !v)}
               aria-label="Abrir menu"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-5">
-                <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={menuOpen ? "close" : "open"}
+                  initial={{ rotate: -45, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 45, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex"
+                >
+                  {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+                </motion.span>
+              </AnimatePresence>
             </button>
-            <span className="text-xl">🍪</span>
+            <Cookie className="size-6 text-primary" />
             <span className="font-display text-lg font-semibold">Doce Controle</span>
           </div>
 
           <nav className="hidden items-center gap-1 sm:flex">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={clsx(
-                  "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === item.href
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-surface-hover"
-                )}
-              >
-                {item.icon} {item.label}
-              </Link>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={clsx(
+                    "relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    active ? "text-primary-foreground" : "text-foreground hover:bg-surface-hover"
+                  )}
+                >
+                  {active && (
+                    <motion.span
+                      layoutId="nav-pill"
+                      className="absolute inset-0 rounded-lg bg-primary"
+                      transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                    />
+                  )}
+                  <item.Icon className="relative size-4" />
+                  <span className="relative">{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -68,30 +88,45 @@ export function AppShell({ userEmail, children }: { userEmail: string; children:
             </span>
             <ThemeToggle />
             <Button variant="secondary" size="sm" onClick={handleLogout}>
-              Sair
+              <LogOut className="size-4" />
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
 
-        {menuOpen && (
-          <nav className="flex flex-col gap-1 border-t border-border px-4 py-3 sm:hidden">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={clsx(
-                  "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  pathname === item.href
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-surface-hover"
-                )}
-              >
-                {item.icon} {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        <AnimatePresence initial={false}>
+          {menuOpen && (
+            <motion.nav
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex flex-col gap-1 overflow-hidden border-t border-border px-4 sm:hidden"
+            >
+              <div className="flex flex-col gap-1 py-3">
+                {NAV_ITEMS.map((item) => {
+                  const active = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className={clsx(
+                        "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-surface-hover"
+                      )}
+                    >
+                      <item.Icon className="size-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </motion.nav>
+          )}
+        </AnimatePresence>
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">{children}</main>

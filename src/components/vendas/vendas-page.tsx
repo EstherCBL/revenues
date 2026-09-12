@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DataGrid, type Column, type RowsChangeData } from "react-data-grid";
-import "react-data-grid/lib/styles.css";
+import dynamic from "next/dynamic";
+import type { Column, RowsChangeData } from "react-data-grid";
+import { Plus, Download, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { periodoParaIntervalo } from "@/lib/period";
 import { exportRowsToXlsx } from "@/lib/export-xlsx";
@@ -11,6 +12,7 @@ import type { Produto, Venda, PeriodoFiltro } from "@/lib/types";
 import { PeriodFilter } from "@/components/dashboard/period-filter";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   makeProdutoEditor,
   makeNumberEditor,
@@ -19,6 +21,11 @@ import {
   formaPagamentoLabel,
 } from "@/components/vendas/editors";
 
+const VendasGridInner = dynamic(() => import("./vendas-grid-inner"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[420px] w-full" />,
+});
+
 export type VendaRow = Venda;
 
 export function VendasPage() {
@@ -26,6 +33,7 @@ export function VendasPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("mes");
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,6 +53,7 @@ export function VendasPage() {
     setRows(vendas ?? []);
     setProdutos(produtosData ?? []);
     setLoading(false);
+    setHasLoadedOnce(true);
   }, [periodo]);
 
   useEffect(() => {
@@ -170,14 +179,14 @@ export function VendasPage() {
       {
         key: "actions",
         name: "",
-        width: 60,
+        width: 50,
         renderCell: ({ row }) => (
           <button
             onClick={() => handleDeleteRow(row.id)}
-            className="flex h-full w-full items-center justify-center text-muted-foreground hover:text-danger"
+            className="flex h-full w-full items-center justify-center text-muted-foreground transition-colors hover:text-danger"
             title="Excluir venda"
           >
-            🗑
+            <Trash2 className="size-4" />
           </button>
         ),
       },
@@ -185,7 +194,7 @@ export function VendasPage() {
     [produtosAtivos, produtoNomeById]
   );
 
-  function handleExport() {
+  async function handleExport() {
     const exportRows = rows.map((r) => ({
       Data: formatDateBR(r.data_venda),
       Produto: r.produto_id ? produtoNomeById.get(r.produto_id) ?? "" : "",
@@ -195,7 +204,7 @@ export function VendasPage() {
       Pagamento: formaPagamentoLabel(r.forma_pagamento),
       Notas: r.notas ?? "",
     }));
-    exportRowsToXlsx(exportRows, "vendas.xlsx", "Vendas");
+    await exportRowsToXlsx(exportRows, "vendas.xlsx", "Vendas");
   }
 
   return (
@@ -208,9 +217,13 @@ export function VendasPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <PeriodFilter value={periodo} onChange={setPeriodo} />
-          <Button onClick={handleAddRow}>+ Nova venda</Button>
+          <PeriodFilter value={periodo} onChange={setPeriodo} groupId="vendas-period-pill" />
+          <Button onClick={handleAddRow}>
+            <Plus className="size-4" />
+            Nova venda
+          </Button>
           <Button variant="secondary" onClick={handleExport} disabled={rows.length === 0}>
+            <Download className="size-4" />
             Exportar .xlsx
           </Button>
         </div>
@@ -227,14 +240,11 @@ export function VendasPage() {
               Cadastre um produto antes de lançar vendas.
             </p>
           )}
-          <DataGrid
-            columns={columns}
-            rows={rows}
-            onRowsChange={handleRowsChange}
-            rowKeyGetter={(row: VendaRow) => row.id}
-            style={{ minHeight: 420, height: "calc(100vh - 380px)" }}
-            rowHeight={40}
-          />
+          {loading && !hasLoadedOnce ? (
+            <Skeleton className="h-[420px] w-full" />
+          ) : (
+            <VendasGridInner columns={columns} rows={rows} onRowsChange={handleRowsChange} />
+          )}
         </div>
       </Card>
     </div>

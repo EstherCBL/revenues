@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Wallet, ShoppingBasket, TrendingUp, Target } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { formatBRL, formatPercent } from "@/lib/format";
 
@@ -6,7 +7,7 @@ type Stat = {
   label: string;
   value: string;
   tone?: "default" | "success" | "danger";
-  icon: string;
+  Icon: typeof Wallet;
 };
 
 export function StatCards({
@@ -21,29 +22,29 @@ export function StatCards({
   margem: number;
 }) {
   const stats: Stat[] = [
-    { label: "Faturamento", value: formatBRL(faturamento), icon: "💰" },
-    { label: "Custo em ingredientes", value: formatBRL(custoIngredientes), icon: "🧺" },
+    { label: "Faturamento", value: formatBRL(faturamento), Icon: Wallet },
+    { label: "Custo em ingredientes", value: formatBRL(custoIngredientes), Icon: ShoppingBasket },
     {
       label: "Lucro bruto",
       value: formatBRL(lucroBruto),
       tone: lucroBruto >= 0 ? "success" : "danger",
-      icon: "📈",
+      Icon: TrendingUp,
     },
     {
       label: "Margem de lucro",
       value: formatPercent(margem),
       tone: margem >= 0 ? "success" : "danger",
-      icon: "🎯",
+      Icon: Target,
     },
   ];
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat) => (
-        <Card key={stat.label} className="p-5">
+      {stats.map((stat, i) => (
+        <Card key={stat.label} delay={i * 0.06} className="p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">{stat.label}</span>
-            <span className="text-lg">{stat.icon}</span>
+            <stat.Icon className="size-4 text-muted-foreground" />
           </div>
           <p
             className={clsx(

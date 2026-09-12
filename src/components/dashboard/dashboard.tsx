@@ -8,6 +8,8 @@ import { PeriodFilter } from "@/components/dashboard/period-filter";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { ProfitSplit } from "@/components/dashboard/profit-split";
 import { RevenueChart, type RevenuePoint } from "@/components/dashboard/revenue-chart";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DEFAULT_CONFIG: ConfigFinanceira = {
   id: 1,
@@ -19,6 +21,7 @@ const DEFAULT_CONFIG: ConfigFinanceira = {
 export function Dashboard() {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("mes");
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [faturamento, setFaturamento] = useState(0);
   const [custoIngredientes, setCustoIngredientes] = useState(0);
   const [chartData, setChartData] = useState<RevenuePoint[]>([]);
@@ -62,6 +65,7 @@ export function Dashboard() {
     setChartData(serie);
     if (configRows) setConfig(configRows);
     setLoading(false);
+    setHasLoadedOnce(true);
   }, [periodo]);
 
   useEffect(() => {
@@ -70,6 +74,7 @@ export function Dashboard() {
 
   const lucroBruto = faturamento - custoIngredientes;
   const margem = faturamento > 0 ? (lucroBruto / faturamento) * 100 : 0;
+  const showSkeleton = loading && !hasLoadedOnce;
 
   return (
     <div className="flex flex-col gap-6">
@@ -78,17 +83,28 @@ export function Dashboard() {
           <h1 className="font-display text-2xl font-semibold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground">Visão geral da sua produção de doces</p>
         </div>
-        <PeriodFilter value={periodo} onChange={setPeriodo} />
+        <PeriodFilter value={periodo} onChange={setPeriodo} groupId="dashboard-period-pill" />
       </div>
 
-      <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
-        <StatCards
-          faturamento={faturamento}
-          custoIngredientes={custoIngredientes}
-          lucroBruto={lucroBruto}
-          margem={margem}
-        />
-      </div>
+      {showSkeleton ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} delay={i * 0.06} className="p-5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="mt-3 h-7 w-28" />
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
+          <StatCards
+            faturamento={faturamento}
+            custoIngredientes={custoIngredientes}
+            lucroBruto={lucroBruto}
+            margem={margem}
+          />
+        </div>
+      )}
 
       <ProfitSplit config={config} faturamento={faturamento} onSaved={setConfig} />
 

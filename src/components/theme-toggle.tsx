@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { AnimatePresence, motion } from "motion/react";
+import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -16,23 +18,41 @@ export function ThemeToggle() {
   const isDark = resolvedTheme === "dark";
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
       title={isDark ? "Modo claro" : "Modo escuro"}
-      className="flex size-9 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-hover"
+      whileHover={{ scale: 1.06 }}
+      whileTap={{ scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      className="relative flex size-9 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-foreground transition-colors hover:bg-surface-hover"
     >
-      {isDark ? (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4.5">
-          <circle cx="12" cy="12" r="4.5" />
-          <path strokeLinecap="round" d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
-        </svg>
-      ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4.5">
-          <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 1020.354 15.354z" />
-        </svg>
-      )}
-    </button>
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.span
+            key="sun"
+            initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="flex"
+          >
+            <Sun className="size-4.5" />
+          </motion.span>
+        ) : (
+          <motion.span
+            key="moon"
+            initial={{ rotate: 90, opacity: 0, scale: 0.5 }}
+            animate={{ rotate: 0, opacity: 1, scale: 1 }}
+            exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="flex"
+          >
+            <Moon className="size-4.5" />
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </motion.button>
   );
 }

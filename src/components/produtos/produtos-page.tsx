@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Produto } from "@/lib/types";
 import { ProdutoForm, type ProdutoInput } from "@/components/produtos/produto-form";
 import { ProdutoCard } from "@/components/produtos/produto-card";
@@ -69,19 +71,31 @@ export function ProdutosPage() {
         <h2 className="mb-3 text-base font-semibold text-foreground">
           Cadastrados {produtos.length > 0 && `(${produtos.length})`}
         </h2>
-        {!loading && produtos.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} delay={i * 0.06} className="p-5">
+                <Skeleton className="h-5 w-2/3" />
+                <Skeleton className="mt-2 h-4 w-full" />
+                <Skeleton className="mt-4 h-7 w-24" />
+              </Card>
+            ))}
+          </div>
+        ) : produtos.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum produto cadastrado ainda.</p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {produtos.map((produto) => (
-              <ProdutoCard
-                key={produto.id}
-                produto={produto}
-                onSave={handleSave}
-                onToggleAtivo={handleToggleAtivo}
-                onDelete={handleDelete}
-              />
-            ))}
+            <AnimatePresence initial={false} mode="popLayout">
+              {produtos.map((produto) => (
+                <ProdutoCard
+                  key={produto.id}
+                  produto={produto}
+                  onSave={handleSave}
+                  onToggleAtivo={handleToggleAtivo}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>

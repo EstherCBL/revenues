@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
 import { todayISO } from "@/lib/format";
@@ -127,7 +128,7 @@ export function IngredienteForm({
 
       <div className="flex items-end lg:col-span-1">
         <Button type="submit" disabled={saving} className="w-full">
-          {saving ? "Salvando..." : "+ Adicionar"}
+          {saving ? "Salvando..." : (<><Plus className="size-4" /> Adicionar</>)}
         </Button>
       </div>
     </form>

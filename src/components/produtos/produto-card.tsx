@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import clsx from "clsx";
+import { motion } from "motion/react";
+import { Pencil, Power, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/field";
 import { formatBRL } from "@/lib/format";
@@ -38,7 +40,12 @@ export function ProdutoCard({
   }
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 14, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       className={clsx(
         "rounded-2xl border border-border bg-surface p-5 shadow-sm shadow-black/[0.03] transition-opacity",
         !produto.ativo && "opacity-60"
@@ -99,20 +106,33 @@ export function ProdutoCard({
             <div className="mt-3">
               <button
                 onClick={() => setShowReceita((v) => !v)}
-                className="text-sm font-medium text-primary hover:underline"
+                className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
               >
                 {showReceita ? "Ocultar receita" : "Ver receita / ficha técnica"}
+                <motion.span
+                  animate={{ rotate: showReceita ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex"
+                >
+                  <ChevronDown className="size-3.5" />
+                </motion.span>
               </button>
-              {showReceita && (
+              <motion.div
+                initial={false}
+                animate={{ height: showReceita ? "auto" : 0, opacity: showReceita ? 1 : 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
                 <p className="mt-2 whitespace-pre-wrap rounded-lg bg-surface-hover/60 p-3 text-sm text-foreground">
                   {produto.receita}
                 </p>
-              )}
+              </motion.div>
             </div>
           )}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-border pt-3">
             <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+              <Pencil className="size-4" />
               Editar
             </Button>
             <Button
@@ -120,14 +140,16 @@ export function ProdutoCard({
               size="sm"
               onClick={() => onToggleAtivo(produto.id, !produto.ativo)}
             >
+              <Power className="size-4" />
               {produto.ativo ? "Desativar" : "Ativar"}
             </Button>
             <Button variant="ghost" size="sm" onClick={handleDelete} disabled={busy} className="text-danger">
+              <Trash2 className="size-4" />
               Excluir
             </Button>
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -1,9 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence } from "motion/react";
+import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { exportRowsToXlsx } from "@/lib/export-xlsx";
 import { formatBRL, formatDateBR } from "@/lib/format";
 import type { IngredienteComprado } from "@/lib/types";
@@ -56,7 +59,7 @@ export function IngredientesPage() {
     await load();
   }
 
-  function handleExport() {
+  async function handleExport() {
     const rows = items.map((i) => ({
       Data: formatDateBR(i.data_compra),
       Ingrediente: i.nome,
@@ -66,7 +69,7 @@ export function IngredientesPage() {
       "Valor pago (R$)": Number(i.preco_pago),
       Notas: i.notas ?? "",
     }));
-    exportRowsToXlsx(rows, "ingredientes-comprados.xlsx", "Ingredientes");
+    await exportRowsToXlsx(rows, "ingredientes-comprados.xlsx", "Ingredientes");
   }
 
   return (
@@ -79,6 +82,7 @@ export function IngredientesPage() {
           </p>
         </div>
         <Button variant="secondary" onClick={handleExport} disabled={items.length === 0}>
+          <Download className="size-4" />
           Exportar .xlsx
         </Button>
       </div>
@@ -90,7 +94,7 @@ export function IngredientesPage() {
         </CardBody>
       </Card>
 
-      <Card className="overflow-hidden">
+      <Card delay={0.1} className="overflow-hidden">
         <CardHeader title="Histórico" subtitle="Mais recentes primeiro" />
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] border-collapse text-left">
@@ -106,9 +110,23 @@ export function IngredientesPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
-                <IngredienteRow key={item.id} item={item} onSave={handleSave} onDelete={handleDelete} />
-              ))}
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="border-b border-border last:border-0">
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <Skeleton className="h-4 w-full max-w-24" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : (
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {items.map((item) => (
+                      <IngredienteRow key={item.id} item={item} onSave={handleSave} onDelete={handleDelete} />
+                    ))}
+                  </AnimatePresence>
+                )}
             </tbody>
           </table>
           {!loading && items.length === 0 && (

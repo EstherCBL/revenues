@@ -1,4 +1,4 @@
-import { type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, forwardRef, type ReactNode } from "react";
+import { type InputHTMLAttributes, type TextareaHTMLAttributes, forwardRef, type ReactNode } from "react";
 import clsx from "clsx";
 
 const baseControl =
@@ -18,13 +18,6 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   )
 );
 Input.displayName = "Input";
-
-export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
-  ({ className, ...props }, ref) => (
-    <select ref={ref} className={clsx(baseControl, "appearance-none pr-8", className)} {...props} />
-  )
-);
-Select.displayName = "Select";
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
   ({ className, ...props }, ref) => (

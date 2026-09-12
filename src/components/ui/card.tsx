@@ -1,22 +1,30 @@
+"use client";
+
 import { type ReactNode } from "react";
+import { motion } from "motion/react";
 import clsx from "clsx";
 
 export function Card({
   children,
   className,
+  delay = 0,
 }: {
   children: ReactNode;
   className?: string;
+  delay?: number;
 }) {
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] }}
       className={clsx(
         "rounded-2xl border border-border bg-surface shadow-sm shadow-black/[0.03]",
         className
       )}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
