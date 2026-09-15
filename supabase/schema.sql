@@ -101,18 +101,23 @@ alter table produtos enable row level security;
 alter table vendas enable row level security;
 alter table config_financeira enable row level security;
 
+drop policy if exists "authenticated full access" on ingredientes_comprados;
 create policy "authenticated full access" on ingredientes_comprados
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access" on precos_pesquisados_v2;
 create policy "authenticated full access" on precos_pesquisados_v2
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access" on produtos;
 create policy "authenticated full access" on produtos
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access" on vendas;
 create policy "authenticated full access" on vendas
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
+drop policy if exists "authenticated full access" on config_financeira;
 create policy "authenticated full access" on config_financeira
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
