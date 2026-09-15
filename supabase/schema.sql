@@ -22,8 +22,13 @@ create index if not exists idx_ingredientes_data on ingredientes_comprados (data
 
 -- ============================================================
 -- Precos pesquisados (comparacao de precos antes de comprar)
+--
+-- Nota: a tabela e "_v2" porque a "precos_pesquisados" original
+-- ficou presa no cache do PostgREST (bug conhecido do Supabase,
+-- retorna PGRST205 mesmo apos reload/restart) apos o projeto ser
+-- pausado e a tabela recriada. Renomear contornou o problema.
 -- ============================================================
-create table if not exists precos_pesquisados (
+create table if not exists precos_pesquisados_v2 (
   id uuid primary key default gen_random_uuid(),
   nome text not null,
   local_pesquisa text,         -- ex: "Assai Anapolis", "site X"
@@ -35,7 +40,7 @@ create table if not exists precos_pesquisados (
   created_at timestamptz default now()
 );
 
-create index if not exists idx_precos_pesquisados_nome on precos_pesquisados (nome, preco);
+create index if not exists idx_precos_pesquisados_v2_nome on precos_pesquisados_v2 (nome, preco);
 
 -- ============================================================
 -- Produtos cadastrados
@@ -91,7 +96,7 @@ on conflict (id) do nothing;
 -- multiplos usuarios/paapeis nesta versao.
 -- ============================================================
 alter table ingredientes_comprados enable row level security;
-alter table precos_pesquisados enable row level security;
+alter table precos_pesquisados_v2 enable row level security;
 alter table produtos enable row level security;
 alter table vendas enable row level security;
 alter table config_financeira enable row level security;
@@ -99,7 +104,7 @@ alter table config_financeira enable row level security;
 create policy "authenticated full access" on ingredientes_comprados
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
-create policy "authenticated full access" on precos_pesquisados
+create policy "authenticated full access" on precos_pesquisados_v2
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
 
 create policy "authenticated full access" on produtos
@@ -110,3 +115,19 @@ create policy "authenticated full access" on vendas
 
 create policy "authenticated full access" on config_financeira
   for all using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+-- ============================================================
+-- Grants
+-- RLS restringe o acesso, mas o PostgREST tambem exige privilegio
+-- de tabela: sem o grant, ele esconde a tabela (erro PGRST205,
+-- "table not found") em vez de negar o acesso.
+-- ============================================================
+grant usage on schema public to anon, authenticated;
+
+grant select, insert, update, delete on
+  ingredientes_comprados,
+  precos_pesquisados_v2,
+  produtos,
+  vendas,
+  config_financeira
+to anon, authenticated;

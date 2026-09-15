@@ -32,7 +32,7 @@ produtos e um dashboard com faturamento, lucro e divisão financeira.
 > **Já tem o projeto rodando?** `schema.sql` usa `create table if not exists`,
 > então é seguro rodar o arquivo inteiro de novo no SQL Editor a qualquer
 > momento — ele só cria o que ainda não existe (por exemplo, a tabela
-> `precos_pesquisados` da aba "Pesquisa de preços").
+> `precos_pesquisados_v2` da aba "Pesquisa de preços").
 
 ## 2. Rodar localmente
 

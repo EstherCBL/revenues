@@ -25,7 +25,7 @@ export function PesquisaPrecosPage() {
     setLoading(true);
     const supabase = createClient();
     const { data, error } = await supabase
-      .from("precos_pesquisados")
+      .from("precos_pesquisados_v2")
       .select("*")
       .order("nome", { ascending: true })
       .order("preco", { ascending: true });
@@ -71,21 +71,21 @@ export function PesquisaPrecosPage() {
 
   async function handleAdd(values: PrecoInput) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados").insert(values);
+    const { error } = await supabase.from("precos_pesquisados_v2").insert(values);
     if (error) throw new Error(error.message);
     await load();
   }
 
   async function handleSave(id: string, values: Partial<PrecoPesquisado>) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados").update(values).eq("id", id);
+    const { error } = await supabase.from("precos_pesquisados_v2").update(values).eq("id", id);
     if (error) throw new Error(error.message);
     await load();
   }
 
   async function handleDelete(id: string) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados").delete().eq("id", id);
+    const { error } = await supabase.from("precos_pesquisados_v2").delete().eq("id", id);
     if (error) throw new Error(error.message);
     await load();
   }
