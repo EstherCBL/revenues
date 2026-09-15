@@ -29,13 +29,20 @@ export function PrecoForm({
   };
   const [values, setValues] = useState<PrecoInput>(empty);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await onSubmit(values);
-    setSaving(false);
-    setValues({ ...empty, data_pesquisa: todayISO() });
+    setError(null);
+    try {
+      await onSubmit(values);
+      setValues({ ...empty, data_pesquisa: todayISO() });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível salvar.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -135,6 +142,12 @@ export function PrecoForm({
           {saving ? "Salvando..." : (<><Plus className="size-4" /> Adicionar</>)}
         </Button>
       </div>
+
+      {error && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger lg:col-span-6">
+          Não foi possível salvar: {error}
+        </p>
+      )}
     </form>
   );
 }
