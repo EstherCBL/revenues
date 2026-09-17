@@ -15,10 +15,11 @@ export function AdicionarCompraModal({
 }: {
   preco: PrecoPesquisado | null;
   onClose: () => void;
-  onConfirm: (values: IngredienteInput) => Promise<void>;
+  onConfirm: (values: IngredienteInput) => Promise<string | null>;
 }) {
   const [draft, setDraft] = useState<IngredienteInput | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (preco) {
@@ -31,6 +32,7 @@ export function AdicionarCompraModal({
         data_compra: todayISO(),
         notas: preco.notas,
       });
+      setError(null);
     } else {
       setDraft(null);
     }
@@ -39,8 +41,10 @@ export function AdicionarCompraModal({
   async function handleConfirm() {
     if (!draft) return;
     setSaving(true);
-    await onConfirm(draft);
+    setError(null);
+    const errorMessage = await onConfirm(draft);
     setSaving(false);
+    if (errorMessage) setError(errorMessage);
   }
 
   return (
@@ -109,6 +113,12 @@ export function AdicionarCompraModal({
               />
             </div>
           </div>
+
+          {error && (
+            <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+              Não foi possível adicionar: {error}
+            </p>
+          )}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button variant="secondary" onClick={onClose}>

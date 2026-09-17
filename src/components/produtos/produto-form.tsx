@@ -8,16 +8,22 @@ import type { Produto } from "@/lib/types";
 
 export type ProdutoInput = Pick<Produto, "nome" | "descricao" | "preco_venda" | "receita">;
 
-export function ProdutoForm({ onSubmit }: { onSubmit: (values: ProdutoInput) => Promise<void> }) {
+export function ProdutoForm({ onSubmit }: { onSubmit: (values: ProdutoInput) => Promise<string | null> }) {
   const empty: ProdutoInput = { nome: "", descricao: "", preco_venda: 0, receita: "" };
   const [values, setValues] = useState<ProdutoInput>(empty);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await onSubmit(values);
+    setError(null);
+    const errorMessage = await onSubmit(values);
     setSaving(false);
+    if (errorMessage) {
+      setError(errorMessage);
+      return;
+    }
     setValues(empty);
   }
 
@@ -73,6 +79,12 @@ export function ProdutoForm({ onSubmit }: { onSubmit: (values: ProdutoInput) => 
           {saving ? "Salvando..." : (<><Plus className="size-4" /> Cadastrar produto</>)}
         </Button>
       </div>
+
+      {error && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+          Não foi possível salvar: {error}
+        </p>
+      )}
     </form>
   );
 }

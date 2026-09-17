@@ -16,7 +16,7 @@ export function IngredienteForm({
   onSubmit,
 }: {
   locaisSugeridos: string[];
-  onSubmit: (values: IngredienteInput) => Promise<void>;
+  onSubmit: (values: IngredienteInput) => Promise<string | null>;
 }) {
   const empty: IngredienteInput = {
     nome: "",
@@ -29,12 +29,18 @@ export function IngredienteForm({
   };
   const [values, setValues] = useState<IngredienteInput>(empty);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await onSubmit(values);
+    setError(null);
+    const errorMessage = await onSubmit(values);
     setSaving(false);
+    if (errorMessage) {
+      setError(errorMessage);
+      return;
+    }
     setValues({ ...empty, data_compra: todayISO() });
   }
 
@@ -131,6 +137,12 @@ export function IngredienteForm({
           {saving ? "Salvando..." : (<><Plus className="size-4" /> Adicionar</>)}
         </Button>
       </div>
+
+      {error && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger lg:col-span-6">
+          Não foi possível salvar: {error}
+        </p>
+      )}
     </form>
   );
 }

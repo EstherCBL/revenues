@@ -63,10 +63,12 @@ export function PesquisaPrecosPage() {
     return map;
   }, [items]);
 
-  async function handleAdd(values: PrecoInput) {
+  async function handleAdd(values: PrecoInput): Promise<string | null> {
     const supabase = createClient();
-    await supabase.from("precos_pesquisados").insert(values);
+    const { error } = await supabase.from("precos_pesquisados").insert(values);
+    if (error) return error.message;
     await load();
+    return null;
   }
 
   async function handleSave(id: string, values: Partial<PrecoPesquisado>) {
@@ -81,10 +83,12 @@ export function PesquisaPrecosPage() {
     await load();
   }
 
-  async function handleConfirmAddToCompras(values: IngredienteInput) {
+  async function handleConfirmAddToCompras(values: IngredienteInput): Promise<string | null> {
     const supabase = createClient();
-    await supabase.from("ingredientes_comprados").insert(values);
+    const { error } = await supabase.from("ingredientes_comprados").insert(values);
+    if (error) return error.message;
     setSelecionado(null);
+    return null;
   }
 
   async function handleExport() {

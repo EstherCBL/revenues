@@ -29,10 +29,12 @@ export function ProdutosPage() {
     load();
   }, [load]);
 
-  async function handleAdd(values: ProdutoInput) {
+  async function handleAdd(values: ProdutoInput): Promise<string | null> {
     const supabase = createClient();
-    await supabase.from("produtos").insert(values);
+    const { error } = await supabase.from("produtos").insert(values);
+    if (error) return error.message;
     await load();
+    return null;
   }
 
   async function handleSave(id: string, values: Partial<Produto>) {

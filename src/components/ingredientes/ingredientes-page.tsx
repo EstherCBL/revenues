@@ -41,10 +41,12 @@ export function IngredientesPage() {
 
   const totalGasto = useMemo(() => items.reduce((acc, i) => acc + Number(i.preco_pago), 0), [items]);
 
-  async function handleAdd(values: IngredienteInput) {
+  async function handleAdd(values: IngredienteInput): Promise<string | null> {
     const supabase = createClient();
-    await supabase.from("ingredientes_comprados").insert(values);
+    const { error } = await supabase.from("ingredientes_comprados").insert(values);
+    if (error) return error.message;
     await load();
+    return null;
   }
 
   async function handleSave(id: string, values: Partial<IngredienteComprado>) {

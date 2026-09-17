@@ -34,6 +34,7 @@ export function VendasPage() {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("mes");
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,7 +78,8 @@ export function VendasPage() {
       forma_pagamento: row.forma_pagamento,
       notas: row.notas,
     };
-    await supabase.from("vendas").update(payload).eq("id", row.id);
+    const { error } = await supabase.from("vendas").update(payload).eq("id", row.id);
+    if (error) setActionError(error.message);
   }
 
   function handleRowsChange(newRows: VendaRow[], data: RowsChangeData<VendaRow>) {
@@ -93,6 +95,7 @@ export function VendasPage() {
   }
 
   async function handleAddRow() {
+    setActionError(null);
     const supabase = createClient();
     const primeiro = produtosAtivos[0];
     const novaVenda = {
@@ -104,15 +107,22 @@ export function VendasPage() {
       notas: "",
     };
     const { data, error } = await supabase.from("vendas").insert(novaVenda).select().single();
-    if (!error && data) {
-      setRows((prev) => [data, ...prev]);
+    if (error) {
+      setActionError(error.message);
+      return;
     }
+    setRows((prev) => [data, ...prev]);
   }
 
   async function handleDeleteRow(id: string) {
     if (!confirm("Excluir esta venda?")) return;
+    setActionError(null);
     const supabase = createClient();
-    await supabase.from("vendas").delete().eq("id", id);
+    const { error } = await supabase.from("vendas").delete().eq("id", id);
+    if (error) {
+      setActionError(error.message);
+      return;
+    }
     setRows((prev) => prev.filter((r) => r.id !== id));
   }
 
@@ -228,6 +238,12 @@ export function VendasPage() {
           </Button>
         </div>
       </div>
+
+      {actionError && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+          Não foi possível salvar: {actionError}
+        </p>
+      )}
 
       <Card className="overflow-hidden">
         <CardHeader
