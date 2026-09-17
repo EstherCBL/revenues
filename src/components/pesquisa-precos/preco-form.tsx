@@ -16,7 +16,7 @@ export function PrecoForm({
   onSubmit,
 }: {
   locaisSugeridos: string[];
-  onSubmit: (values: PrecoInput) => Promise<string | null>;
+  onSubmit: (values: PrecoInput) => Promise<void>;
 }) {
   const empty: PrecoInput = {
     nome: "",
@@ -35,13 +35,14 @@ export function PrecoForm({
     e.preventDefault();
     setSaving(true);
     setError(null);
-    const errorMessage = await onSubmit(values);
-    setSaving(false);
-    if (errorMessage) {
-      setError(errorMessage);
-      return;
+    try {
+      await onSubmit(values);
+      setValues({ ...empty, data_pesquisa: todayISO() });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível salvar.");
+    } finally {
+      setSaving(false);
     }
-    setValues({ ...empty, data_pesquisa: todayISO() });
   }
 
   return (

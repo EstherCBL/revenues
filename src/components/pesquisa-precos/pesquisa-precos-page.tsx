@@ -18,17 +18,23 @@ import { AdicionarCompraModal } from "@/components/pesquisa-precos/adicionar-com
 export function PesquisaPrecosPage() {
   const [items, setItems] = useState<PrecoPesquisado[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<PrecoPesquisado | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const supabase = createClient();
-    const { data } = await supabase
-      .from("precos_pesquisados")
+    const { data, error } = await supabase
+      .from("precos_pesquisados_v2")
       .select("*")
       .order("nome", { ascending: true })
       .order("preco", { ascending: true });
-    setItems(data ?? []);
+    if (error) {
+      setLoadError(error.message);
+    } else {
+      setLoadError(null);
+      setItems(data ?? []);
+    }
     setLoading(false);
   }, []);
 
@@ -63,32 +69,32 @@ export function PesquisaPrecosPage() {
     return map;
   }, [items]);
 
-  async function handleAdd(values: PrecoInput): Promise<string | null> {
+  async function handleAdd(values: PrecoInput) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados").insert(values);
-    if (error) return error.message;
+    const { error } = await supabase.from("precos_pesquisados_v2").insert(values);
+    if (error) throw new Error(error.message);
     await load();
-    return null;
   }
 
   async function handleSave(id: string, values: Partial<PrecoPesquisado>) {
     const supabase = createClient();
-    await supabase.from("precos_pesquisados").update(values).eq("id", id);
+    const { error } = await supabase.from("precos_pesquisados_v2").update(values).eq("id", id);
+    if (error) throw new Error(error.message);
     await load();
   }
 
   async function handleDelete(id: string) {
     const supabase = createClient();
-    await supabase.from("precos_pesquisados").delete().eq("id", id);
+    const { error } = await supabase.from("precos_pesquisados_v2").delete().eq("id", id);
+    if (error) throw new Error(error.message);
     await load();
   }
 
-  async function handleConfirmAddToCompras(values: IngredienteInput): Promise<string | null> {
+  async function handleConfirmAddToCompras(values: IngredienteInput) {
     const supabase = createClient();
     const { error } = await supabase.from("ingredientes_comprados").insert(values);
-    if (error) return error.message;
+    if (error) throw new Error(error.message);
     setSelecionado(null);
-    return null;
   }
 
   async function handleExport() {
@@ -118,6 +124,12 @@ export function PesquisaPrecosPage() {
           Exportar .xlsx
         </Button>
       </div>
+
+      {loadError && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+          Não foi possível carregar o histórico: {loadError}
+        </p>
+      )}
 
       <Card>
         <CardHeader title="Registrar preço pesquisado" />

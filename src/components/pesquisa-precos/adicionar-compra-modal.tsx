@@ -15,7 +15,7 @@ export function AdicionarCompraModal({
 }: {
   preco: PrecoPesquisado | null;
   onClose: () => void;
-  onConfirm: (values: IngredienteInput) => Promise<string | null>;
+  onConfirm: (values: IngredienteInput) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<IngredienteInput | null>(null);
   const [saving, setSaving] = useState(false);
@@ -42,9 +42,13 @@ export function AdicionarCompraModal({
     if (!draft) return;
     setSaving(true);
     setError(null);
-    const errorMessage = await onConfirm(draft);
-    setSaving(false);
-    if (errorMessage) setError(errorMessage);
+    try {
+      await onConfirm(draft);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível adicionar.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
