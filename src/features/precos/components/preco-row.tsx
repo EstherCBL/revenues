@@ -6,6 +6,8 @@ import { Pencil, Trash2, X, Check, PackagePlus, Award } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/field";
 import { formatBRL, formatDateBR } from "@/shared/lib/format";
+import { validar } from "@/shared/lib/validacao";
+import { precoSchema } from "@/features/precos/schemas/preco.schema";
 import type { PrecoPesquisado } from "@/shared/lib/types";
 
 export function PrecoRow({
@@ -27,10 +29,15 @@ export function PrecoRow({
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    setBusy(true);
     setError(null);
+    const validado = validar(precoSchema, draft);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setBusy(true);
     try {
-      await onSave(item.id, draft);
+      await onSave(item.id, validado.data);
       setEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível salvar.");

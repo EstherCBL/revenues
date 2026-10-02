@@ -9,6 +9,8 @@ import { Input, Label } from "@/shared/components/ui/field";
 import { formatBRL } from "@/shared/lib/format";
 import { createClient } from "@/lib/supabase/client";
 import { traduzirErroSupabase } from "@/shared/lib/errors";
+import { validar } from "@/shared/lib/validacao";
+import { configFinanceiraSchema } from "@/features/dashboard/schemas/config-financeira.schema";
 import type { ConfigFinanceira } from "@/shared/lib/types";
 
 type Split = { pct_investimento: number; pct_ingredientes: number; pct_pessoal: number };
@@ -41,8 +43,9 @@ export function ProfitSplit({
   const totalValid = Math.abs(total - 100) < 0.001;
 
   async function handleSave() {
-    if (!totalValid) {
-      setError("Os três percentuais precisam somar exatamente 100%.");
+    const validado = validar(configFinanceiraSchema, draft);
+    if (!validado.ok) {
+      setError(validado.error);
       return;
     }
     setSaving(true);
@@ -51,7 +54,7 @@ export function ProfitSplit({
     const supabase = createClient();
     const { error: dbError } = await supabase
       .from("config_financeira")
-      .update(draft)
+      .update(validado.data)
       .eq("id", 1);
 
     setSaving(false);
@@ -61,7 +64,7 @@ export function ProfitSplit({
       return;
     }
 
-    onSaved({ id: 1, ...draft });
+    onSaved({ id: 1, ...validado.data });
     setEditing(false);
   }
 

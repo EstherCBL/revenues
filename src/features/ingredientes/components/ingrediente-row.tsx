@@ -7,6 +7,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/field";
 import { formatBRL, formatDateBR } from "@/shared/lib/format";
 import { mensagemDeErro } from "@/shared/lib/errors";
+import { validar } from "@/shared/lib/validacao";
+import { ingredienteCompraSchema } from "@/shared/schemas/ingrediente-compra.schema";
 import type { IngredienteComprado } from "@/shared/lib/types";
 
 export function IngredienteRow({
@@ -24,10 +26,15 @@ export function IngredienteRow({
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    setBusy(true);
     setError(null);
+    const validado = validar(ingredienteCompraSchema, draft);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setBusy(true);
     try {
-      await onSave(item.id, draft);
+      await onSave(item.id, validado.data);
       setEditing(false);
     } catch (err) {
       setError(mensagemDeErro(err, "Não foi possível salvar."));

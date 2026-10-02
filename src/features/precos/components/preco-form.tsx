@@ -5,6 +5,9 @@ import { Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input, Label } from "@/shared/components/ui/field";
 import { todayISO } from "@/shared/lib/format";
+import { mensagemDeErro } from "@/shared/lib/errors";
+import { validar } from "@/shared/lib/validacao";
+import { precoSchema } from "@/features/precos/schemas/preco.schema";
 import type { PrecoPesquisado } from "@/shared/lib/types";
 
 export type PrecoInput = Omit<PrecoPesquisado, "id" | "created_at">;
@@ -33,13 +36,18 @@ export function PrecoForm({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
+    const validado = validar(precoSchema, values);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setSaving(true);
     try {
-      await onSubmit(values);
+      await onSubmit(validado.data);
       setValues({ ...empty, data_pesquisa: todayISO() });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível salvar.");
+      setError(`Não foi possível salvar: ${mensagemDeErro(err)}`);
     } finally {
       setSaving(false);
     }
@@ -145,7 +153,7 @@ export function PrecoForm({
 
       {error && (
         <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger lg:col-span-6">
-          Não foi possível salvar: {error}
+          {error}
         </p>
       )}
     </form>

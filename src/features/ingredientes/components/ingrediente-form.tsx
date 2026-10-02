@@ -5,6 +5,8 @@ import { Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input, Label } from "@/shared/components/ui/field";
 import { todayISO } from "@/shared/lib/format";
+import { validar } from "@/shared/lib/validacao";
+import { ingredienteCompraSchema } from "@/shared/schemas/ingrediente-compra.schema";
 import type { IngredienteInput } from "@/shared/lib/types";
 
 const UNIDADES = ["g", "kg", "ml", "l", "un"];
@@ -31,12 +33,17 @@ export function IngredienteForm({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
-    const errorMessage = await onSubmit(values);
+    const validado = validar(ingredienteCompraSchema, values);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setSaving(true);
+    const errorMessage = await onSubmit(validado.data);
     setSaving(false);
     if (errorMessage) {
-      setError(errorMessage);
+      setError(`Não foi possível salvar: ${errorMessage}`);
       return;
     }
     setValues({ ...empty, data_compra: todayISO() });
@@ -138,7 +145,7 @@ export function IngredienteForm({
 
       {error && (
         <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger lg:col-span-6">
-          Não foi possível salvar: {error}
+          {error}
         </p>
       )}
     </form>

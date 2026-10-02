@@ -5,6 +5,8 @@ import { Plus } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input, Label, Textarea } from "@/shared/components/ui/field";
 import type { Produto } from "@/shared/lib/types";
+import { validar } from "@/shared/lib/validacao";
+import { produtoSchema } from "@/features/produtos/schemas/produto.schema";
 
 export type ProdutoInput = Pick<Produto, "nome" | "descricao" | "preco_venda" | "receita">;
 
@@ -16,12 +18,17 @@ export function ProdutoForm({ onSubmit }: { onSubmit: (values: ProdutoInput) => 
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
-    const errorMessage = await onSubmit(values);
+    const validado = validar(produtoSchema, values);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setSaving(true);
+    const errorMessage = await onSubmit(validado.data);
     setSaving(false);
     if (errorMessage) {
-      setError(errorMessage);
+      setError(`Não foi possível salvar: ${errorMessage}`);
       return;
     }
     setValues(empty);
@@ -82,7 +89,7 @@ export function ProdutoForm({ onSubmit }: { onSubmit: (values: ProdutoInput) => 
 
       {error && (
         <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
-          Não foi possível salvar: {error}
+          {error}
         </p>
       )}
     </form>

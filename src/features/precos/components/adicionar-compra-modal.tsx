@@ -5,6 +5,9 @@ import { Modal } from "@/shared/components/ui/modal";
 import { Button } from "@/shared/components/ui/button";
 import { Input, Label } from "@/shared/components/ui/field";
 import { todayISO } from "@/shared/lib/format";
+import { mensagemDeErro } from "@/shared/lib/errors";
+import { validar } from "@/shared/lib/validacao";
+import { ingredienteCompraSchema } from "@/shared/schemas/ingrediente-compra.schema";
 import type { IngredienteInput, PrecoPesquisado } from "@/shared/lib/types";
 
 export function AdicionarCompraModal({
@@ -39,12 +42,17 @@ export function AdicionarCompraModal({
 
   async function handleConfirm() {
     if (!draft) return;
-    setSaving(true);
     setError(null);
+    const validado = validar(ingredienteCompraSchema, draft);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setSaving(true);
     try {
-      await onConfirm(draft);
+      await onConfirm(validado.data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível adicionar.");
+      setError(`Não foi possível adicionar: ${mensagemDeErro(err)}`);
     } finally {
       setSaving(false);
     }
@@ -119,7 +127,7 @@ export function AdicionarCompraModal({
 
           {error && (
             <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
-              Não foi possível adicionar: {error}
+              {error}
             </p>
           )}
 

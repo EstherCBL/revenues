@@ -12,7 +12,9 @@ import type { Produto, PeriodoFiltro } from "@/shared/lib/types";
 import type { VendaRow } from "@/features/vendas/types";
 import { PeriodFilter } from "@/shared/components/period-filter";
 import { useToast } from "@/shared/components/toast";
-import { assertOk, mensagemDeErro, unwrap } from "@/shared/lib/errors";
+import { DomainError, assertOk, mensagemDeErro, unwrap } from "@/shared/lib/errors";
+import { validar } from "@/shared/lib/validacao";
+import { vendaSchema } from "@/features/vendas/schemas/venda.schema";
 import { Card, CardHeader } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -93,7 +95,9 @@ export function VendasPage() {
       forma_pagamento: row.forma_pagamento,
       notas: row.notas,
     };
-    assertOk(await supabase.from("vendas").update(payload).eq("id", row.id));
+    const validado = validar(vendaSchema, payload);
+    if (!validado.ok) throw new DomainError(validado.error);
+    assertOk(await supabase.from("vendas").update(validado.data).eq("id", row.id));
   }
 
   function handleRowsChange(newRows: VendaRow[], data: RowsChangeData<VendaRow>) {

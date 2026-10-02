@@ -8,6 +8,8 @@ import { Button } from "@/shared/components/ui/button";
 import { Input, Textarea } from "@/shared/components/ui/field";
 import { formatBRL } from "@/shared/lib/format";
 import { mensagemDeErro } from "@/shared/lib/errors";
+import { validar } from "@/shared/lib/validacao";
+import { produtoSchema } from "@/features/produtos/schemas/produto.schema";
 import type { Produto } from "@/shared/lib/types";
 
 export function ProdutoCard({
@@ -28,10 +30,15 @@ export function ProdutoCard({
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    setBusy(true);
     setError(null);
+    const validado = validar(produtoSchema, draft);
+    if (!validado.ok) {
+      setError(validado.error);
+      return;
+    }
+    setBusy(true);
     try {
-      await onSave(produto.id, draft);
+      await onSave(produto.id, validado.data);
       setEditing(false);
     } catch (err) {
       setError(mensagemDeErro(err, "Não foi possível salvar."));
