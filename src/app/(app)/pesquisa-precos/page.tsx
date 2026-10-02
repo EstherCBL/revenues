@@ -1,4 +1,4 @@
-import { PesquisaPrecosPage } from "@/components/pesquisa-precos/pesquisa-precos-page";
+import { PesquisaPrecosPage } from "@/features/precos/components/pesquisa-precos-page";
 
 export default function Page() {
   return <PesquisaPrecosPage />;

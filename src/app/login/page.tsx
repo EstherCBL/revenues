@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { Cookie } from "lucide-react";
 import { LoginForm } from "./login-form";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/shared/components/theme-toggle";
 
 export default function LoginPage() {
   return (

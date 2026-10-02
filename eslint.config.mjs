@@ -2,6 +2,26 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+// Regra de arquitetura (docs/ARQUITETURA.md): uma feature nao importa de outra;
+// codigo comum vive em src/shared.
+const FEATURES = ["dashboard", "vendas", "produtos", "ingredientes", "precos"];
+const isolamentoDeFeatures = FEATURES.map((feature) => ({
+  files: [`src/features/${feature}/**/*.{ts,tsx}`],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: FEATURES.filter((f) => f !== feature).map((f) => `@/features/${f}/**`),
+            message: "Features nao importam umas das outras: mova o codigo comum para src/shared.",
+          },
+        ],
+      },
+    ],
+  },
+}));
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -13,6 +33,7 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
     },
   },
+  ...isolamentoDeFeatures,
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

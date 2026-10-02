@@ -3,9 +3,9 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/field";
-import { Card, CardBody } from "@/components/ui/card";
+import { Button } from "@/shared/components/ui/button";
+import { Input, Label } from "@/shared/components/ui/field";
+import { Card, CardBody } from "@/shared/components/ui/card";
 
 export function LoginForm() {
   const router = useRouter();
