@@ -9,6 +9,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { exportRowsToXlsx } from "@/shared/lib/export-xlsx";
 import { formatDateBR } from "@/shared/lib/format";
+import { assertOk, traduzirErroSupabase } from "@/shared/lib/errors";
 import type { IngredienteInput, PrecoPesquisado } from "@/shared/lib/types";
 import { PrecoForm, type PrecoInput } from "@/features/precos/components/preco-form";
 import { PrecoRow } from "@/features/precos/components/preco-row";
@@ -29,7 +30,7 @@ export function PesquisaPrecosPage() {
       .order("nome", { ascending: true })
       .order("preco", { ascending: true });
     if (error) {
-      setLoadError(error.message);
+      setLoadError(traduzirErroSupabase(error));
     } else {
       setLoadError(null);
       setItems(data ?? []);
@@ -70,29 +71,25 @@ export function PesquisaPrecosPage() {
 
   async function handleAdd(values: PrecoInput) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados_v2").insert(values);
-    if (error) throw new Error(error.message);
+    assertOk(await supabase.from("precos_pesquisados_v2").insert(values));
     await load();
   }
 
   async function handleSave(id: string, values: Partial<PrecoPesquisado>) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados_v2").update(values).eq("id", id);
-    if (error) throw new Error(error.message);
+    assertOk(await supabase.from("precos_pesquisados_v2").update(values).eq("id", id));
     await load();
   }
 
   async function handleDelete(id: string) {
     const supabase = createClient();
-    const { error } = await supabase.from("precos_pesquisados_v2").delete().eq("id", id);
-    if (error) throw new Error(error.message);
+    assertOk(await supabase.from("precos_pesquisados_v2").delete().eq("id", id));
     await load();
   }
 
   async function handleConfirmAddToCompras(values: IngredienteInput) {
     const supabase = createClient();
-    const { error } = await supabase.from("ingredientes_comprados").insert(values);
-    if (error) throw new Error(error.message);
+    assertOk(await supabase.from("ingredientes_comprados").insert(values));
     setSelecionado(null);
   }
 

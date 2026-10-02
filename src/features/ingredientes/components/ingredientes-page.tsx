@@ -9,6 +9,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import { exportRowsToXlsx } from "@/shared/lib/export-xlsx";
 import { formatBRL, formatDateBR } from "@/shared/lib/format";
+import { assertOk, mensagemDeErro, traduzirErroSupabase, unwrap } from "@/shared/lib/errors";
 import type { IngredienteComprado, IngredienteInput } from "@/shared/lib/types";
 import { IngredienteForm } from "@/features/ingredientes/components/ingrediente-form";
 import { IngredienteRow } from "@/features/ingredientes/components/ingrediente-row";
@@ -16,17 +17,26 @@ import { IngredienteRow } from "@/features/ingredientes/components/ingrediente-r
 export function IngredientesPage() {
   const [items, setItems] = useState<IngredienteComprado[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const supabase = createClient();
-    const { data } = await supabase
-      .from("ingredientes_comprados")
-      .select("*")
-      .order("data_compra", { ascending: false })
-      .order("created_at", { ascending: false });
-    setItems(data ?? []);
-    setLoading(false);
+    try {
+      const data = unwrap(
+        await supabase
+          .from("ingredientes_comprados")
+          .select("*")
+          .order("data_compra", { ascending: false })
+          .order("created_at", { ascending: false })
+      );
+      setItems(data);
+      setLoadError(null);
+    } catch (e) {
+      setLoadError(mensagemDeErro(e, "Não foi possível carregar as compras."));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -44,20 +54,20 @@ export function IngredientesPage() {
   async function handleAdd(values: IngredienteInput): Promise<string | null> {
     const supabase = createClient();
     const { error } = await supabase.from("ingredientes_comprados").insert(values);
-    if (error) return error.message;
+    if (error) return traduzirErroSupabase(error);
     await load();
     return null;
   }
 
   async function handleSave(id: string, values: Partial<IngredienteComprado>) {
     const supabase = createClient();
-    await supabase.from("ingredientes_comprados").update(values).eq("id", id);
+    assertOk(await supabase.from("ingredientes_comprados").update(values).eq("id", id));
     await load();
   }
 
   async function handleDelete(id: string) {
     const supabase = createClient();
-    await supabase.from("ingredientes_comprados").delete().eq("id", id);
+    assertOk(await supabase.from("ingredientes_comprados").delete().eq("id", id));
     await load();
   }
 
@@ -88,6 +98,12 @@ export function IngredientesPage() {
           Exportar .xlsx
         </Button>
       </div>
+
+      {loadError && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+          Não foi possível carregar o histórico: {loadError}
+        </p>
+      )}
 
       <Card>
         <CardHeader title="Registrar nova compra" />

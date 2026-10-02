@@ -6,23 +6,35 @@ import { createClient } from "@/lib/supabase/client";
 import { Card, CardHeader, CardBody } from "@/shared/components/ui/card";
 import { Skeleton } from "@/shared/components/ui/skeleton";
 import type { Produto } from "@/shared/lib/types";
+import { useToast } from "@/shared/components/toast";
+import { assertOk, mensagemDeErro, traduzirErroSupabase, unwrap } from "@/shared/lib/errors";
 import { ProdutoForm, type ProdutoInput } from "@/features/produtos/components/produto-form";
 import { ProdutoCard } from "@/features/produtos/components/produto-card";
 
 export function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     setLoading(true);
     const supabase = createClient();
-    const { data } = await supabase
-      .from("produtos")
-      .select("*")
-      .order("ativo", { ascending: false })
-      .order("nome", { ascending: true });
-    setProdutos(data ?? []);
-    setLoading(false);
+    try {
+      const data = unwrap(
+        await supabase
+          .from("produtos")
+          .select("*")
+          .order("ativo", { ascending: false })
+          .order("nome", { ascending: true })
+      );
+      setProdutos(data);
+      setLoadError(null);
+    } catch (e) {
+      setLoadError(mensagemDeErro(e, "Não foi possível carregar os produtos."));
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -32,24 +44,28 @@ export function ProdutosPage() {
   async function handleAdd(values: ProdutoInput): Promise<string | null> {
     const supabase = createClient();
     const { error } = await supabase.from("produtos").insert(values);
-    if (error) return error.message;
+    if (error) return traduzirErroSupabase(error);
     await load();
     return null;
   }
 
   async function handleSave(id: string, values: Partial<Produto>) {
     const supabase = createClient();
-    await supabase.from("produtos").update(values).eq("id", id);
+    assertOk(await supabase.from("produtos").update(values).eq("id", id));
     await load();
   }
 
   async function handleToggleAtivo(id: string, ativo: boolean) {
-    await handleSave(id, { ativo });
+    try {
+      await handleSave(id, { ativo });
+    } catch (e) {
+      toast.erro(`Não foi possível ${ativo ? "ativar" : "desativar"} o produto: ${mensagemDeErro(e)}`);
+    }
   }
 
   async function handleDelete(id: string) {
     const supabase = createClient();
-    await supabase.from("produtos").delete().eq("id", id);
+    assertOk(await supabase.from("produtos").delete().eq("id", id));
     await load();
   }
 
@@ -61,6 +77,12 @@ export function ProdutosPage() {
           Cadastre seus doces com preço de venda e receita para consulta rápida.
         </p>
       </div>
+
+      {loadError && (
+        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+          Não foi possível carregar os produtos: {loadError}
+        </p>
+      )}
 
       <Card>
         <CardHeader title="Novo produto" />

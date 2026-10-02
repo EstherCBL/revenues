@@ -8,6 +8,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Input, Label } from "@/shared/components/ui/field";
 import { formatBRL } from "@/shared/lib/format";
 import { createClient } from "@/lib/supabase/client";
+import { traduzirErroSupabase } from "@/shared/lib/errors";
 import type { ConfigFinanceira } from "@/shared/lib/types";
 
 type Split = { pct_investimento: number; pct_ingredientes: number; pct_pessoal: number };
@@ -56,7 +57,7 @@ export function ProfitSplit({
     setSaving(false);
 
     if (dbError) {
-      setError("Não foi possível salvar. Tente novamente.");
+      setError(`Não foi possível salvar: ${traduzirErroSupabase(dbError)}`);
       return;
     }
 

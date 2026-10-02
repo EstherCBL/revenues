@@ -7,6 +7,7 @@ import { Pencil, Power, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input, Textarea } from "@/shared/components/ui/field";
 import { formatBRL } from "@/shared/lib/format";
+import { mensagemDeErro } from "@/shared/lib/errors";
 import type { Produto } from "@/shared/lib/types";
 
 export function ProdutoCard({
@@ -24,19 +25,32 @@ export function ProdutoCard({
   const [draft, setDraft] = useState(produto);
   const [busy, setBusy] = useState(false);
   const [showReceita, setShowReceita] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
     setBusy(true);
-    await onSave(produto.id, draft);
-    setBusy(false);
-    setEditing(false);
+    setError(null);
+    try {
+      await onSave(produto.id, draft);
+      setEditing(false);
+    } catch (err) {
+      setError(mensagemDeErro(err, "Não foi possível salvar."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleDelete() {
     if (!confirm(`Excluir o produto "${produto.nome}"? Vendas já registradas não são apagadas.`)) return;
     setBusy(true);
-    await onDelete(produto.id);
-    setBusy(false);
+    setError(null);
+    try {
+      await onDelete(produto.id);
+    } catch (err) {
+      setError(mensagemDeErro(err, "Não foi possível excluir."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -149,6 +163,10 @@ export function ProdutoCard({
             </Button>
           </div>
         </>
+      )}
+
+      {error && (
+        <p className="mt-3 rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">{error}</p>
       )}
     </motion.div>
   );

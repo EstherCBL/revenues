@@ -6,6 +6,7 @@ import { Pencil, Trash2, X, Check } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/field";
 import { formatBRL, formatDateBR } from "@/shared/lib/format";
+import { mensagemDeErro } from "@/shared/lib/errors";
 import type { IngredienteComprado } from "@/shared/lib/types";
 
 export function IngredienteRow({
@@ -20,20 +21,41 @@ export function IngredienteRow({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
     setBusy(true);
-    await onSave(item.id, draft);
-    setBusy(false);
-    setEditing(false);
+    setError(null);
+    try {
+      await onSave(item.id, draft);
+      setEditing(false);
+    } catch (err) {
+      setError(mensagemDeErro(err, "Não foi possível salvar."));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleDelete() {
     if (!confirm(`Excluir a compra de "${item.nome}"?`)) return;
     setBusy(true);
-    await onDelete(item.id);
-    setBusy(false);
+    setError(null);
+    try {
+      await onDelete(item.id);
+    } catch (err) {
+      setError(mensagemDeErro(err, "Não foi possível excluir."));
+    } finally {
+      setBusy(false);
+    }
   }
+
+  const errorRow = error && (
+    <tr>
+      <td colSpan={7} className="bg-danger-bg px-4 py-2 text-xs text-danger">
+        {error}
+      </td>
+    </tr>
+  );
 
   const rowMotionProps = {
     layout: true,
@@ -45,6 +67,7 @@ export function IngredienteRow({
 
   if (!editing) {
     return (
+      <>
       <motion.tr {...rowMotionProps} className="border-b border-border last:border-0 hover:bg-surface-hover/60">
         <td className="whitespace-nowrap px-4 py-3 text-sm text-muted-foreground">
           {formatDateBR(item.data_compra)}
@@ -67,10 +90,13 @@ export function IngredienteRow({
           </Button>
         </td>
       </motion.tr>
+      {errorRow}
+      </>
     );
   }
 
   return (
+    <>
     <motion.tr {...rowMotionProps} className="border-b border-border bg-surface-hover/40 last:border-0">
       <td className="px-2 py-2">
         <Input
@@ -128,5 +154,7 @@ export function IngredienteRow({
         </Button>
       </td>
     </motion.tr>
+    {errorRow}
+    </>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Column, RowsChangeData } from "react-data-grid";
 import { Plus, Download, Trash2 } from "lucide-react";
@@ -11,6 +11,8 @@ import { formatBRL, formatDateBR, todayISO } from "@/shared/lib/format";
 import type { Produto, PeriodoFiltro } from "@/shared/lib/types";
 import type { VendaRow } from "@/features/vendas/types";
 import { PeriodFilter } from "@/shared/components/period-filter";
+import { useToast } from "@/shared/components/toast";
+import { assertOk, mensagemDeErro, unwrap } from "@/shared/lib/errors";
 import { Card, CardHeader } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -34,9 +36,12 @@ export function VendasPage() {
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("mes");
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const toast = useToast();
+  const requisicaoAtual = useRef(0);
 
   const load = useCallback(async () => {
+    const requisicao = ++requisicaoAtual.current;
     setLoading(true);
     const supabase = createClient();
     const intervalo = periodoParaIntervalo(periodo);
@@ -46,15 +51,24 @@ export function VendasPage() {
       vendasQuery = vendasQuery.gte("data_venda", intervalo.inicio).lte("data_venda", intervalo.fim);
     }
 
-    const [{ data: vendas }, { data: produtosData }] = await Promise.all([
-      vendasQuery,
-      supabase.from("produtos").select("*").order("nome"),
-    ]);
-
-    setRows(vendas ?? []);
-    setProdutos(produtosData ?? []);
-    setLoading(false);
-    setHasLoadedOnce(true);
+    try {
+      const [vendasRes, produtosRes] = await Promise.all([
+        vendasQuery,
+        supabase.from("produtos").select("*").order("nome"),
+      ]);
+      const vendas = unwrap(vendasRes);
+      const produtosData = unwrap(produtosRes);
+      if (requisicao !== requisicaoAtual.current) return; // resposta de um período que já foi trocado
+      setRows(vendas);
+      setProdutos(produtosData);
+      setLoadError(null);
+      setHasLoadedOnce(true);
+    } catch (e) {
+      if (requisicao !== requisicaoAtual.current) return;
+      setLoadError(mensagemDeErro(e, "Não foi possível carregar as vendas."));
+    } finally {
+      if (requisicao === requisicaoAtual.current) setLoading(false);
+    }
   }, [periodo]);
 
   useEffect(() => {
@@ -68,6 +82,7 @@ export function VendasPage() {
     return map;
   }, [produtos]);
 
+  /** Lança DomainError se o banco recusar; quem chama decide como reverter. */
   async function persistRow(row: VendaRow) {
     const supabase = createClient();
     const payload = {
@@ -78,12 +93,12 @@ export function VendasPage() {
       forma_pagamento: row.forma_pagamento,
       notas: row.notas,
     };
-    const { error } = await supabase.from("vendas").update(payload).eq("id", row.id);
-    if (error) setActionError(error.message);
+    assertOk(await supabase.from("vendas").update(payload).eq("id", row.id));
   }
 
   function handleRowsChange(newRows: VendaRow[], data: RowsChangeData<VendaRow>) {
     const idx = data.indexes[0];
+    const anterior = rows[idx];
     const changed = newRows[idx];
     const withTotal = {
       ...changed,
@@ -91,11 +106,14 @@ export function VendasPage() {
     };
     const finalRows = newRows.map((r, i) => (i === idx ? withTotal : r));
     setRows(finalRows);
-    persistRow(withTotal);
+    persistRow(withTotal).catch((e) => {
+      // volta a célula ao valor que está salvo no banco
+      setRows((prev) => prev.map((r) => (r.id === anterior.id ? anterior : r)));
+      toast.erro(`Não foi possível salvar a venda: ${mensagemDeErro(e)}`);
+    });
   }
 
   async function handleAddRow() {
-    setActionError(null);
     const supabase = createClient();
     const primeiro = produtosAtivos[0];
     const novaVenda = {
@@ -106,25 +124,24 @@ export function VendasPage() {
       forma_pagamento: "pix",
       notas: "",
     };
-    const { data, error } = await supabase.from("vendas").insert(novaVenda).select().single();
-    if (error) {
-      setActionError(error.message);
-      return;
+    try {
+      const data = unwrap(await supabase.from("vendas").insert(novaVenda).select().single());
+      setRows((prev) => [data, ...prev]);
+    } catch (e) {
+      toast.erro(`Não foi possível registrar a venda: ${mensagemDeErro(e)}`);
     }
-    setRows((prev) => [data, ...prev]);
   }
 
-  async function handleDeleteRow(id: string) {
+  const handleDeleteRow = useCallback(async (id: string) => {
     if (!confirm("Excluir esta venda?")) return;
-    setActionError(null);
     const supabase = createClient();
-    const { error } = await supabase.from("vendas").delete().eq("id", id);
-    if (error) {
-      setActionError(error.message);
-      return;
+    try {
+      assertOk(await supabase.from("vendas").delete().eq("id", id));
+      setRows((prev) => prev.filter((r) => r.id !== id));
+    } catch (e) {
+      toast.erro(`Não foi possível excluir a venda: ${mensagemDeErro(e)}`);
     }
-    setRows((prev) => prev.filter((r) => r.id !== id));
-  }
+  }, [toast]);
 
   const totalPeriodo = useMemo(() => rows.reduce((acc, r) => acc + Number(r.valor_total), 0), [rows]);
 
@@ -201,7 +218,7 @@ export function VendasPage() {
         ),
       },
     ],
-    [produtosAtivos, produtoNomeById]
+    [produtosAtivos, produtoNomeById, handleDeleteRow]
   );
 
   async function handleExport() {
@@ -239,10 +256,13 @@ export function VendasPage() {
         </div>
       </div>
 
-      {actionError && (
-        <p className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
-          Não foi possível salvar: {actionError}
-        </p>
+      {loadError && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+          <span>Não foi possível carregar as vendas: {loadError}</span>
+          <Button variant="secondary" size="sm" onClick={load}>
+            Tentar de novo
+          </Button>
+        </div>
       )}
 
       <Card className="overflow-hidden">

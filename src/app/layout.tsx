@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Fraunces } from "next/font/google";
 import { ThemeProvider } from "@/shared/components/theme-provider";
+import { ToastProvider } from "@/shared/components/toast";
 import "./globals.css";
 
 const bodyFont = Plus_Jakarta_Sans({
@@ -34,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <ToastProvider>{children}</ToastProvider>
         </ThemeProvider>
       </body>
     </html>
