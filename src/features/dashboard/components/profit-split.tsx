@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { traduzirErroSupabase } from "@/shared/lib/errors";
 import { validar } from "@/shared/lib/validacao";
 import { configFinanceiraSchema } from "@/features/dashboard/schemas/config-financeira.schema";
+import { dividirFaturamento } from "@/features/dashboard/domain/resumo";
 import type { ConfigFinanceira } from "@/shared/lib/types";
 
 type Split = { pct_investimento: number; pct_ingredientes: number; pct_pessoal: number };
@@ -39,6 +40,7 @@ export function ProfitSplit({
     setDraft(config);
   }, [config]);
 
+  const partes = dividirFaturamento(faturamento, config);
   const total = draft.pct_investimento + draft.pct_ingredientes + draft.pct_pessoal;
   const totalValid = Math.abs(total - 100) < 0.001;
 
@@ -156,7 +158,7 @@ export function ProfitSplit({
             >
               {ROWS.map((row) => {
                 const pct = config[row.key];
-                const valor = (faturamento * pct) / 100;
+                const valor = partes[row.key];
                 return (
                   <div
                     key={row.key}

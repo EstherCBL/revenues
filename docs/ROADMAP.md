@@ -19,7 +19,8 @@ Qualidade (testes e CI) começa já na Fase 0 e continua nas seguintes.
 
 ## Fase 0 — tarefas (ordem sugerida)
 
-Cada item tem critério de pronto. Itens 1–4 são bloqueantes para o resto.
+Cada item tem critério de pronto. Itens 1–8 concluídos (marcados com ✅); antes de publicar, aplicar no Supabase as
+migrations `20261002000200` e `20261002000300`.
 
 1. ✅ **Ler os docs do Next 16** em `node_modules/next/dist/docs/` e registrar em ADR
    as mudanças que afetam o projeto (ex.: `proxy.ts`).
@@ -39,16 +40,16 @@ Cada item tem critério de pronto. Itens 1–4 são bloqueantes para o resto.
    *Pronto:* banco novo sobe só com `supabase db reset`.
    *Feito:* `supabase/migrations/` (baseline + hardening). `precos_pesquisados_v2`
    mantida; será recriada na migração multi-tenant (item 9).
-5. **Tratamento de erros.** `DomainError`, resultado das actions, toasts e
+5. ✅ **Tratamento de erros.** `DomainError`, resultado das actions, toasts e
    rollback em vendas, ingredientes, produtos, preços e config financeira.
    *Pronto:* nenhuma chamada ao Supabase sem checagem de erro.
-6. **Validação com Zod** em todos os formulários e na grade de vendas
+6. ✅ **Validação com Zod** em todos os formulários e na grade de vendas
    (quantidade ≥ 1, preços ≥ 0, percentuais somando 100).
    *Pronto:* schemas em `features/*/schemas`, reaproveitados no servidor.
-7. **Agregações no banco.** Views/RPC para faturamento, custo, série por dia;
+7. ✅ **Agregações no banco.** Views/RPC para faturamento, custo, série por dia;
    dashboard deixa de baixar todas as linhas.
    *Pronto:* dashboard com 1 chamada por bloco, filtrada por período.
-8. **Reorganizar em features** conforme a estrutura alvo (sem mudar
+8. ✅ **Reorganizar em features** conforme a estrutura alvo (sem mudar
    comportamento). *Pronto:* sem imports entre features, `madge` limpo.
 9. **Multi-tenant.** Migration de `workspaces` + `workspace_members`,
    backfill do seu usuário como `owner`, RLS por `workspace_id`.
