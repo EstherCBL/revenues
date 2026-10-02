@@ -18,21 +18,26 @@ produtos e um dashboard com faturamento, lucro e divisão financeira.
 ## 1. Configurar o Supabase
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
-2. No **SQL Editor**, rode o conteúdo de [`supabase/schema.sql`](supabase/schema.sql).
-   Isso cria as tabelas (`ingredientes_comprados`, `produtos`, `vendas`,
-   `config_financeira`), as políticas de RLS (acesso liberado para qualquer
-   usuário autenticado — pensado para uso individual) e a configuração
-   financeira padrão (30% / 35% / 35%).
+2. Aplique as migrations de [`supabase/migrations/`](supabase/migrations) **em
+   ordem de nome**: com a [Supabase CLI](https://supabase.com/docs/guides/local-development)
+   (`supabase link` + `supabase db push`) ou colando cada arquivo no **SQL
+   Editor**. Elas criam as tabelas (`ingredientes_comprados`, `produtos`,
+   `vendas`, `config_financeira`, `precos_pesquisados_v2`), as políticas de RLS
+   (acesso liberado só para usuário autenticado — pensado para uso individual),
+   a configuração financeira padrão (30% / 35% / 35%) e o endurecimento de
+   segurança (sem privilégios para o papel `anon`).
 3. Em **Authentication > Providers**, deixe apenas **Email** habilitado.
-4. Em **Authentication > Users**, crie o seu usuário (seu e-mail/senha) — não
-   há fluxo de cadastro público no site, o login é feito com uma conta já
-   existente.
-5. Em **Project Settings > API**, copie a **Project URL** e a **anon public key**.
+4. Em **Authentication > Sign In / Providers** (configurações de Auth),
+   **desative "Allow new users to sign up"**. Como a RLS libera qualquer usuário
+   autenticado, deixar o cadastro aberto permitiria que qualquer pessoa criasse
+   uma conta e lesse seus dados.
+5. Em **Authentication > Users**, crie o seu usuário (e-mail/senha) — não há
+   fluxo de cadastro público no site, o login é feito com uma conta já existente.
+6. Em **Project Settings > API**, copie a **Project URL** e a **anon public key**.
 
-> **Já tem o projeto rodando?** `schema.sql` usa `create table if not exists`,
-> então é seguro rodar o arquivo inteiro de novo no SQL Editor a qualquer
-> momento — ele só cria o que ainda não existe (por exemplo, a tabela
-> `precos_pesquisados_v2` da aba "Pesquisa de preços").
+> **Já tem o projeto rodando?** As migrations são idempotentes: rode as que
+> ainda não aplicou, em ordem. Para o projeto existente, normalmente só falta
+> `20261002000100_hardening_anon_e_defaults.sql`.
 
 ## 2. Rodar localmente
 
@@ -42,6 +47,8 @@ cp .env.example .env.local
 # edite .env.local com a URL e a anon key do seu projeto Supabase
 npm run dev
 ```
+
+Outros scripts: `npm run lint`, `npm run typecheck` e `npm test` (Vitest).
 
 Acesse [http://localhost:3000](http://localhost:3000) — você será redirecionado
 para `/login`.
@@ -78,6 +85,13 @@ para `/login`.
   ativados/desativados — apenas os ativos aparecem no dropdown de "Vendidos".
 
 ## Notas de segurança
+
+- Headers de segurança configurados em `next.config.ts`. A CSP está em modo
+  **Report-Only**: valide em um deploy de preview e depois troque para
+  enforcement (ver [`docs/adr/0001-next16-proxy-e-headers.md`](docs/adr/0001-next16-proxy-e-headers.md)).
+- O export `.xlsx` neutraliza células que começam com `=`, `+`, `-` ou `@`
+  (injeção de fórmula).
+- Datas de negócio usam o fuso `America/Sao_Paulo` (`src/lib/datas.ts`).
 
 - A tabela `vendas` usa uma coluna gerada (`valor_total`) — o app nunca tenta
   gravar esse campo diretamente.

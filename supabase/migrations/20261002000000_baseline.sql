@@ -1,5 +1,8 @@
--- Doce Controle: schema Supabase (Postgres)
--- Rode este arquivo no SQL Editor do seu projeto Supabase (ou via `supabase db push`).
+-- Doce Controle: baseline do schema Supabase (Postgres)
+-- Estado original do projeto (antigo supabase/schema.sql). Idempotente: seguro
+-- rodar em banco novo ou em um projeto que ja tem estas tabelas.
+-- Migrations seguintes ajustam seguranca e defaults; aplique TODAS em ordem
+-- (`supabase db push`, ou colando cada arquivo no SQL Editor).
 
 create extension if not exists "pgcrypto";
 
