@@ -19,7 +19,7 @@ conhece. Foram lidos os guias em `node_modules/next/dist/docs/` sobre `proxy`,
 2. **Headers via `next.config.ts` (`headers()`).** Aplicados a todas as rotas:
    `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`,
    `Permissions-Policy`, `Strict-Transport-Security`. `poweredByHeader` desligado.
-3. **CSP sem nonce, em modo Report-Only.** Nonce exige renderização dinâmica em
+3. **CSP sem nonce (começou em Report-Only; hoje em enforcement, validada em preview em 2026-10-02).** Nonce exige renderização dinâmica em
    todas as páginas, o que custa performance e atrapalha a landing estática
    (Fase 3). Sem nonce a política usa `'unsafe-inline'` em script/style, mas ainda
    restringe origens, `frame-ancestors`, `object-src`, `base-uri` e `form-action`.

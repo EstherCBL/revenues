@@ -86,9 +86,9 @@ para `/login`.
 
 ## Notas de segurança
 
-- Headers de segurança configurados em `next.config.ts`. A CSP está em modo
-  **Report-Only**: valide em um deploy de preview e depois troque para
-  enforcement (ver [`docs/adr/0001-next16-proxy-e-headers.md`](docs/adr/0001-next16-proxy-e-headers.md)).
+- Headers de segurança configurados em `next.config.ts`. A CSP está em
+  **enforcement** (validada em preview; se algo for bloqueado, veja
+  o console e ajuste a política; ver [`docs/adr/0001-next16-proxy-e-headers.md`](docs/adr/0001-next16-proxy-e-headers.md)).
 - O export `.xlsx` neutraliza células que começam com `=`, `+`, `-` ou `@`
   (injeção de fórmula).
 - Datas de negócio usam o fuso `America/Sao_Paulo` (`src/lib/datas.ts`).

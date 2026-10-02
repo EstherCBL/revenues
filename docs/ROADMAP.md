@@ -31,9 +31,9 @@ migrations `20261002000200` e `20261002000300`.
 3. ✅ (parcial) **Segurança imediata.** Desligar signup no Supabase; `revoke` de `anon`;
    `.env.example`; headers em `next.config.ts`; sanitizar export.
    *Pronto:* checklist da seção 5 da arquitetura marcado.
-   *Feito:* `.env.example`, headers, CSP em Report-Only, sanitização do export,
+   *Feito:* `.env.example`, headers, CSP em enforcement, sanitização do export,
    `revoke` de `anon`. *Pendente (manual):* desativar "Allow new users to sign up"
-   no painel do Supabase; validar a CSP em preview e trocar para enforcement;
+   no painel do Supabase; CSP já validada e em enforcement;
    decidir a troca do pacote `xlsx` (0.18.5 sem manutenção; hoje só exporta).
 4. ✅ **Migrations versionadas.** Converter `schema.sql` em `supabase/migrations/`;
    resolver a tabela `precos_pesquisados_v2` (renomear de volta ou documentar).
