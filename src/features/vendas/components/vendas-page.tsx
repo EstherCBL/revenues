@@ -6,7 +6,7 @@ import type { Column, RowsChangeData } from "react-data-grid";
 import { Plus, Download, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { periodoParaIntervalo } from "@/shared/lib/period";
-import { exportRowsToXlsx } from "@/shared/lib/export-xlsx";
+import { EXPORT_XLSX_HABILITADO, exportRowsToXlsx } from "@/shared/lib/export-xlsx";
 import { formatBRL, formatDateBR, todayISO } from "@/shared/lib/format";
 import type { Produto, PeriodoFiltro } from "@/shared/lib/types";
 import type { VendaRow } from "@/features/vendas/types";
@@ -253,10 +253,12 @@ export function VendasPage() {
             <Plus className="size-4" />
             Nova venda
           </Button>
-          <Button variant="secondary" onClick={handleExport} disabled={rows.length === 0}>
+          {EXPORT_XLSX_HABILITADO && (
+            <Button variant="secondary" onClick={handleExport} disabled={rows.length === 0}>
             <Download className="size-4" />
             Exportar .xlsx
           </Button>
+          )}
         </div>
       </div>
 

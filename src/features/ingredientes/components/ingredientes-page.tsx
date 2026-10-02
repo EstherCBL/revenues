@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Card, CardHeader, CardBody } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
-import { exportRowsToXlsx } from "@/shared/lib/export-xlsx";
+import { EXPORT_XLSX_HABILITADO, exportRowsToXlsx } from "@/shared/lib/export-xlsx";
 import { formatBRL, formatDateBR } from "@/shared/lib/format";
 import { assertOk, mensagemDeErro, traduzirErroSupabase, unwrap } from "@/shared/lib/errors";
 import type { IngredienteComprado, IngredienteInput } from "@/shared/lib/types";
@@ -93,10 +93,12 @@ export function IngredientesPage() {
             {items.length} compra{items.length === 1 ? "" : "s"} registrada{items.length === 1 ? "" : "s"} · Total gasto: {formatBRL(totalGasto)}
           </p>
         </div>
-        <Button variant="secondary" onClick={handleExport} disabled={items.length === 0}>
+        {EXPORT_XLSX_HABILITADO && (
+          <Button variant="secondary" onClick={handleExport} disabled={items.length === 0}>
           <Download className="size-4" />
           Exportar .xlsx
         </Button>
+        )}
       </div>
 
       {loadError && (

@@ -1,3 +1,6 @@
+/** Exportação oculta por enquanto (pacote xlsx sem manutenção); ver docs/ROADMAP.md. */
+export const EXPORT_XLSX_HABILITADO = false;
+
 /**
  * Neutraliza injeção de fórmula (CSV/Excel injection): textos que começam com
  * =, +, -, @, tab ou CR seriam interpretados como fórmula ao abrir a planilha.
