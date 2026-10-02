@@ -1,3 +1,5 @@
+import { hojeSP } from "@/lib/datas";
+
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
@@ -27,6 +29,7 @@ export function formatDateBR(isoDate: string | null | undefined): string {
   return `${day}/${month}/${year}`;
 }
 
+/** Data de hoje (YYYY-MM-DD) no fuso de São Paulo. */
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return hojeSP();
 }
